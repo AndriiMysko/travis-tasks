@@ -9,7 +9,6 @@ describe Travis::Addons::GithubCheckStatus::Task do
   let(:subject)    { Travis::Addons::GithubCheckStatus::Task.new(payload, installation: installation_id) }
   let(:payload)    { Marshal.load(Marshal.dump(TASK_PAYLOAD)) }
   let(:io)         { StringIO.new }
-  let(:gh_apps)    { Travis::GithubApps.new installation_id }
   let(:installation_id) { '12345' }
 
   let(:slug) { 'svenfuchs/minimal' }
@@ -32,8 +31,8 @@ describe Travis::Addons::GithubCheckStatus::Task do
   end
 
   it 'makes expected API calls' do
-    Travis::Backends::Github.any_instance.expects(:github_apps).times(1).returns(gh_apps)
-    gh_apps.expects(:github_api_conn).times(2).returns(conn)
+    Travis::Backends::Vcs.any_instance.expects(:check_runs).times(1)
+    Travis::Backends::Vcs.any_instance.expects(:update_check_run).times(1)
     subject.run
   end
 
@@ -51,8 +50,8 @@ describe Travis::Addons::GithubCheckStatus::Task do
     }
 
     it 'makes expected API calls' do
-      Travis::Backends::Github.any_instance.expects(:github_apps).times(1).returns(gh_apps)
-      gh_apps.expects(:github_api_conn).times(2).returns(conn)
+      Travis::Backends::Vcs.any_instance.expects(:check_runs).times(1)
+      Travis::Backends::Vcs.any_instance.expects(:create_check_run).times(1)
       subject.run
     end
   end

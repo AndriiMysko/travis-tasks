@@ -11,7 +11,6 @@ describe Travis::Addons::GithubStatus::Task do
   let(:target_url) { 'https://travis-ci.org/github/svenfuchs/minimal/builds/1?utm_source=github_status&utm_medium=notification' }
   let(:payload)    { Marshal.load(Marshal.dump(TASK_PAYLOAD)) }
   let(:io)         { StringIO.new }
-  let(:gh_apps)    { stub('github_apps') }
   let(:installation_id) { '12345' }
   let(:rate_limit_data) { {"x-ratelimit-limit" => "60", "x-ratelimit-remaining" => "59", "x-ratelimit-reset" => (Time.now.to_i + 2000).to_s} }
   let(:no_tokencheck_stack) { instance.send :gh_no_tokencheck_stack }
