@@ -14,7 +14,6 @@ require 'payloads'
 ActionMailer::Base.delivery_method = :test
 
 require 'mocha/api'
-require 'gh'
 require 'capybara'
 
 include Mocha::API

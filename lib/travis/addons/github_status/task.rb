@@ -1,4 +1,3 @@
-require 'gh'
 module Travis
   module Addons
     module GithubStatus

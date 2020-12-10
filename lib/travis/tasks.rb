@@ -1,7 +1,6 @@
 $:.unshift(File.expand_path('..', File.dirname(__FILE__)))
 
 require 'bundler/setup'
-require 'gh'
 require 'roadie'
 require 'ostruct'
 require 'travis/exceptions'
