@@ -1,5 +1,4 @@
 require 'travis/backends/base'
-require 'travis/backends/github'
 require 'travis/backends/vcs'
 
 module Travis
