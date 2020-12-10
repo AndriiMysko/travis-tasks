@@ -31,7 +31,6 @@ RSpec.configure do |c|
   c.before :each do
     Travis.config.oauth2 ||= {}
     Travis.config.oauth2.scope = 'public_repo,user'
-    GH.reset
   end
 end
 

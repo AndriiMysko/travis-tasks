@@ -61,16 +61,6 @@ Sidekiq.configure_client do |c|
   c.redis = { url: url, namespace: config[:namespace], size: config[:pool_size] }
 end
 
-GH.set(
-  client_id:      Travis.config.oauth2.try(:client_id),
-  client_secret:  Travis.config.oauth2.try(:client_secret),
-  origin:         Travis.config.host,
-  api_url:        Travis.config.github.api_url,
-  ssl:            Travis.config.ssl.to_h.merge(Travis.config.github.ssl || {}).to_h.compact,
-  formatter:      Travis.config.github_status.formatter,
-  user_agent:     "Travis-CI GH/#{GH::VERSION}"
-)
-
 module Roadie
   def self.app
     @_config ||= OpenStruct.new(roadie: OpenStruct.new(enabled: true, provider: nil, after_inlining: nil))
