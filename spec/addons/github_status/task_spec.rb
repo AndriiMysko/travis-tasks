@@ -21,17 +21,10 @@ describe Travis::Addons::GithubStatus::Task do
 
   before do
     Travis.logger = Logger.new(io)
-    tokens.each do |t|
-      Redis.new(url: Travis.config.redis.url).del(Travis::Addons::GithubStatus::Task::REDIS_PREFIX + "errored_tokens:" + token_hash(t))
-    end
   end
 
   def run
     instance.run
-  end
-
-  def token_hash(token)
-    Digest::SHA256.hexdigest(token)
   end
 
   it 'posts status info for a created build' do

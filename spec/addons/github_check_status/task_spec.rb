@@ -8,6 +8,7 @@ describe Travis::Addons::GithubCheckStatus::Task do
 
   let(:subject)    { Travis::Addons::GithubCheckStatus::Task.new(payload, installation: installation_id) }
   let(:payload)    { Marshal.load(Marshal.dump(TASK_PAYLOAD)) }
+  let(:vcs_client) { Travis::Backends::VcsClient.new }
   let(:io)         { StringIO.new }
   let(:installation_id) { '12345' }
 
@@ -15,25 +16,42 @@ describe Travis::Addons::GithubCheckStatus::Task do
   let(:sha) { '62aae5f70ceee39123ef' }
   let(:response_data) { {check_run_id: 1, sha: sha, slug: slug} }
 
+  let(:conn) {
+    Faraday.new do |builder|
+      builder.adapter :test do |stub|
+        stub.post("app/installations/12345/access_tokens") { |env| [201, {}, "{\"token\":\"github_apps_access_token\",\"expires_at\":\"2018-04-03T20:52:14Z\"}"] }
+        stub.post("/repositories/549743/check-runs") { |env| [201, {}, check_run_response(response_data)] }
+        stub.get("/repos/549743/checks?check_run_name=Travis+CI+-+Branch&commit=#{sha}&vcs_type=GithubRepository") { |env| [200, {}, check_run_list_response(response_data)] }
+        stub.patch("/repositories/549743/check-runs/1") { |env| [200, {}, check_run_response(response_data)] }
+      end
+    end
+  }
+
   before do
     Travis.logger = Logger.new(io)
   end
 
   it 'makes expected API calls' do
-    Travis::Backends::VcsClient.any_instance.expects(:get).returns([200, {}, check_run_list_response(response_data)])
-    Travis::Backends::Vcs.any_instance.expects(:check_runs).times(1)
-    Travis::Backends::VcsClient.any_instance.expects(:post).returns([200, {}, check_run_response(response_data)])
-    Travis::Backends::Vcs.any_instance.expects(:update_check_run).times(1)
+    Travis::Backends::Vcs.any_instance.stubs(:client).returns(vcs_client)
+    vcs_client.stubs(:client).returns(conn)
     subject.run
   end
 
   context 'when API call to fetch Check Runs fails' do
+    let(:conn) {
+      Faraday.new do |builder|
+        builder.adapter :test do |stub|
+          stub.post("app/installations/12345/access_tokens") { |env| [201, {}, "{\"token\":\"github_apps_access_token\",\"expires_at\":\"2018-04-03T20:52:14Z\"}"] }
+          stub.post("/repositories/549743/check-runs") { |env| [201, {}, check_run_response(response_data)] }
+          stub.get("/repos/549743/checks?check_run_name=Travis+CI+-+Branch&commit=#{sha}&vcs_type=GithubRepository") { |env| [403, {}, check_run_list_response(response_data)] }
+          stub.patch("/repositories/549743/check-runs/1") { |env| [200, {}, check_run_response(response_data)] }
+        end
+      end
+    }
 
     it 'makes expected API calls' do
-      Travis::Backends::VcsClient.any_instance.expects(:get).returns([403, {}, check_run_list_response(response_data)])
-      Travis::Backends::Vcs.any_instance.expects(:check_runs).times(1)
-      Travis::Backends::VcsClient.any_instance.expects(:post).returns([201, {}, check_run_response(response_data)])
-      Travis::Backends::Vcs.any_instance.expects(:create_check_run).times(1)
+      Travis::Backends::Vcs.any_instance.stubs(:client).returns(vcs_client)
+      vcs_client.stubs(:client).returns(conn)
       subject.run
     end
   end

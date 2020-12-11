@@ -39,7 +39,6 @@ module Travis
 
         def process(_timeout)
           client.create_status(
-            process_via_gh_apps: false,
             id: repository[:vcs_id],
             type: repository[:vcs_type],
             ref: sha,
